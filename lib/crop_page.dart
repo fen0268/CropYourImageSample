@@ -15,12 +15,13 @@ class _CropPageState extends State<CropPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Crop Your Image'),
-        ),
-        body: CropSample(
-          imageData: widget.imageData,
-        ));
+      appBar: AppBar(
+        title: const Text('Crop Your Image'),
+      ),
+      body: CropSample(
+        imageData: widget.imageData,
+      ),
+    );
   }
 }
 
@@ -35,29 +36,14 @@ class CropSample extends StatefulWidget {
 }
 
 class CropSampleState extends State<CropSample> {
+  /// コントローラー
   final _cropController = CropController();
-  final _imageDataList = <Uint8List>[];
-  var _loadingImage = false;
-
-  final _currentImage = 0;
 
   var _isThumbnail = false;
   var _isCropping = false;
-  var _isCircleUi = false;
-  Uint8List? _croppedData;
-  var _statusText = '';
 
-  @override
-  void initState() {
-    super.initState();
-    setState(() {
-      _loadingImage = true;
-    });
-    _imageDataList.add(widget.imageData);
-    setState(() {
-      _loadingImage = false;
-    });
-  }
+  // 切り抜きデータ
+  Uint8List? _croppedData;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +52,7 @@ class CropSampleState extends State<CropSample> {
       height: double.infinity,
       child: Center(
         child: Visibility(
-          visible: !_loadingImage && !_isCropping,
+          visible: !_isCropping,
           replacement: const CircularProgressIndicator(),
           child: Column(
             children: [
@@ -80,58 +66,43 @@ class CropSampleState extends State<CropSample> {
                   ),
                   child: Stack(
                     children: [
-                      if (_imageDataList.isNotEmpty) ...[
-                        Crop(
-                          willUpdateScale: (newScale) => newScale < 5,
-                          controller: _cropController,
-                          image: _imageDataList[_currentImage],
-                          onCropped: (croppedData) {
-                            setState(() {
-                              _croppedData = croppedData;
-                              _isCropping = false;
-                            });
-                          },
-                          withCircleUi: _isCircleUi,
-                          onStatusChanged: (status) => setState(() {
-                            _statusText = <CropStatus, String>{
-                                  CropStatus.nothing: 'Crop has no image data',
-                                  CropStatus.loading:
-                                      'Crop is now loading given image',
-                                  CropStatus.ready: 'Crop is now ready!',
-                                  CropStatus.cropping:
-                                      'Crop is now cropping image',
-                                }[status] ??
-                                '';
-                          }),
-                          initialSize: 0.5,
-                          maskColor: _isThumbnail ? Colors.white : null,
-                          cornerDotBuilder: (size, edgeAlignment) =>
-                              const SizedBox.shrink(),
-                          interactive: true,
-                          fixCropRect: true,
-                          radius: 20,
-                          initialRectBuilder: (viewportRect, imageRect) {
-                            return Rect.fromLTRB(
-                              viewportRect.left + 24,
-                              viewportRect.top + 24,
-                              viewportRect.right - 24,
-                              viewportRect.bottom - 24,
-                            );
-                          },
-                        ),
-                        IgnorePointer(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border:
-                                    Border.all(width: 4, color: Colors.white),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
+                      Crop(
+                        willUpdateScale: (newScale) => newScale < 5,
+                        controller: _cropController,
+                        image: widget.imageData,
+                        onCropped: (croppedData) {
+                          setState(() {
+                            _croppedData = croppedData;
+                            _isCropping = false;
+                          });
+                        },
+                        initialSize: 0.5,
+                        maskColor: _isThumbnail ? Colors.white : null,
+                        cornerDotBuilder: (size, edgeAlignment) =>
+                            const SizedBox.shrink(),
+                        interactive: true,
+                        fixCropRect: true,
+                        radius: 20,
+                        initialRectBuilder: (viewportRect, imageRect) {
+                          return Rect.fromLTRB(
+                            viewportRect.left + 24,
+                            viewportRect.top + 24,
+                            viewportRect.right - 24,
+                            viewportRect.bottom - 24,
+                          );
+                        },
+                      ),
+                      IgnorePointer(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(width: 4, color: Colors.white),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),
-                      ],
+                      ),
                       Positioned(
                         right: 16,
                         bottom: 16,
@@ -163,39 +134,31 @@ class CropSampleState extends State<CropSample> {
                           IconButton(
                             icon: const Icon(Icons.crop_7_5),
                             onPressed: () {
-                              _isCircleUi = false;
                               _cropController.aspectRatio = 16 / 4;
                             },
                           ),
                           IconButton(
                             icon: const Icon(Icons.crop_16_9),
                             onPressed: () {
-                              _isCircleUi = false;
                               _cropController.aspectRatio = 16 / 9;
                             },
                           ),
                           IconButton(
                             icon: const Icon(Icons.crop_5_4),
                             onPressed: () {
-                              _isCircleUi = false;
                               _cropController.aspectRatio = 4 / 3;
                             },
                           ),
                           IconButton(
                             icon: const Icon(Icons.crop_square),
-                            onPressed: () {
-                              _isCircleUi = false;
-                              _cropController
-                                ..withCircleUi = false
-                                ..aspectRatio = 1;
-                            },
+                            onPressed: () {},
                           ),
                           IconButton(
-                              icon: const Icon(Icons.circle),
-                              onPressed: () {
-                                _isCircleUi = true;
-                                _cropController.withCircleUi = true;
-                              }),
+                            icon: const Icon(Icons.circle),
+                            onPressed: () {
+                              setState(() {});
+                            },
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -206,9 +169,6 @@ class CropSampleState extends State<CropSample> {
                             setState(() {
                               _isCropping = true;
                             });
-                            _isCircleUi
-                                ? _cropController.cropCircle()
-                                : _cropController.crop();
                           },
                           child: const Padding(
                             padding: EdgeInsets.symmetric(vertical: 16),
@@ -220,9 +180,6 @@ class CropSampleState extends State<CropSample> {
                     ],
                   ),
                 ),
-              const SizedBox(height: 16),
-              Text(_statusText),
-              const SizedBox(height: 16),
             ],
           ),
         ),
