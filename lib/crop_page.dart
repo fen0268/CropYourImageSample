@@ -15,23 +15,26 @@ class _CropPageState extends State<CropPage> {
   var _isBaseColor = false;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Crop Your Image'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _isBaseColor = !_isBaseColor;
-              });
-            },
-            icon: const Icon(Icons.abc),
-          ),
-        ],
-      ),
-      body: CropSample(
-        imageData: widget.imageData,
-        isBaseColor: _isBaseColor,
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Crop Your Image'),
+          actions: [
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  _isBaseColor = !_isBaseColor;
+                });
+              },
+              icon: const Icon(Icons.abc),
+            ),
+          ],
+        ),
+        body: CropSample(
+          imageData: widget.imageData,
+          isBaseColor: _isBaseColor,
+        ),
       ),
     );
   }
@@ -62,6 +65,9 @@ class CropSampleState extends State<CropSample> {
   // enum
   CropEdit edit = CropEdit.crop;
 
+  // 丸か否か
+  bool _isCircle = false;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -83,6 +89,8 @@ class CropSampleState extends State<CropSample> {
                   ),
                   child: Stack(
                     children: [
+                      //
+                      //
                       Crop(
                         baseColor:
                             widget.isBaseColor ? Colors.black : Colors.white,
@@ -96,6 +104,8 @@ class CropSampleState extends State<CropSample> {
                           });
                         },
                         initialSize: 0.5,
+
+                        // 切り抜き画像の背景色
                         maskColor: _isThumbnail ? Colors.black : null,
                         cornerDotBuilder: (size, edgeAlignment) =>
                             const SizedBox.shrink(),
@@ -132,35 +142,58 @@ class CropSampleState extends State<CropSample> {
               CropEditWidget(
                 edit: edit,
                 editChildren: [
-                  IconButton(
-                    icon: const Icon(Icons.crop_7_5),
+                  TextButton(
                     onPressed: () {
-                      _cropController.aspectRatio = 16 / 4;
+                      if (_isCircle) {
+                        _isCircle = !_isCircle;
+                        _cropController
+                          ..withCircleUi = false
+                          ..aspectRatio = 1 / 1;
+                      }
+                      _cropController.aspectRatio = 1 / 1;
                     },
+                    child: const Text('1:1'),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.crop_16_9),
+                  TextButton(
                     onPressed: () {
-                      _cropController.aspectRatio = 16 / 9;
+                      if (_isCircle) {
+                        _isCircle = !_isCircle;
+                        _cropController
+                          ..withCircleUi = false
+                          ..aspectRatio = 3 / 2;
+                      }
+                      _cropController.aspectRatio = 3 / 2;
                     },
+                    child: const Text('3:2'),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.crop_5_4),
+                  TextButton(
                     onPressed: () {
+                      if (_isCircle) {
+                        _isCircle = !_isCircle;
+                        _cropController
+                          ..withCircleUi = false
+                          ..aspectRatio = 4 / 3;
+                      }
                       _cropController.aspectRatio = 4 / 3;
                     },
+                    child: const Text('4:3'),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.crop_square),
+                  TextButton(
                     onPressed: () {
-                      _cropController
-                        ..withCircleUi = false
-                        ..aspectRatio = 1;
+                      if (_isCircle) {
+                        _isCircle = !_isCircle;
+                        _cropController
+                          ..withCircleUi = false
+                          ..aspectRatio = 16 / 9;
+                      }
+                      _cropController.aspectRatio = 16 / 9;
                     },
+                    child: const Text('16:9'),
                   ),
                   IconButton(
                       icon: const Icon(Icons.circle),
                       onPressed: () {
+                        _isCircle = !_isCircle;
                         _cropController.withCircleUi = true;
                       }),
                 ],
@@ -181,6 +214,8 @@ class CropSampleState extends State<CropSample> {
                       },
                       icon: Icons.crop,
                       text: '切り抜き',
+                      color:
+                          CropEdit.crop == edit ? Colors.orange : Colors.white,
                     ),
                     // 回転
                     CropButton(
@@ -191,19 +226,26 @@ class CropSampleState extends State<CropSample> {
                       },
                       icon: Icons.crop_rotate,
                       text: '回転',
+                      color: CropEdit.rotate == edit
+                          ? Colors.orange
+                          : Colors.white,
                     ),
                     // 切り抜きの見た目を確認
                     CropButton(
-                        onTapDown: (_) => setState(() {
-                              edit = CropEdit.thumbnail;
-                              _isThumbnail = true;
-                            }),
-                        onTapUp: (_) => setState(() {
-                              edit = CropEdit.thumbnail;
-                              _isThumbnail = false;
-                            }),
-                        icon: Icons.crop_free_rounded,
-                        text: '見た目'),
+                      onTapDown: (_) => setState(() {
+                        edit = CropEdit.thumbnail;
+                        _isThumbnail = true;
+                      }),
+                      onTapUp: (_) => setState(() {
+                        edit = CropEdit.thumbnail;
+                        _isThumbnail = false;
+                      }),
+                      icon: Icons.crop_free_rounded,
+                      text: '見た目',
+                      color: CropEdit.thumbnail == edit
+                          ? Colors.orange
+                          : Colors.white,
+                    ),
                   ],
                 ),
               )
@@ -273,6 +315,7 @@ class CropButton extends StatelessWidget {
     this.onTapUp,
     required this.icon,
     required this.text,
+    required this.color,
   });
 
   final Function()? onTap;
@@ -280,23 +323,24 @@ class CropButton extends StatelessWidget {
   final Function(TapUpDetails)? onTapUp;
   final IconData icon;
   final String text;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          onTapUp: onTapUp,
-          onTapDown: onTapDown,
-          child: Icon(
+    return GestureDetector(
+      onTap: onTap,
+      onTapUp: onTapUp,
+      onTapDown: onTapDown,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
             icon,
-            color: Colors.white,
+            color: color,
           ),
-        ),
-        Text(text, style: const TextStyle(color: Colors.white)),
-      ],
+          Text(text, style: TextStyle(color: color)),
+        ],
+      ),
     );
   }
 }
