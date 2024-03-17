@@ -12,9 +12,12 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.2
-  crop_your_image: ^1.0.2
   image_picker: ^1.0.7
   flutter_xlider: ^3.5.0
+  crop_your_image: 
+    git: 
+      url: https://github.com/fen0268/crop_your_image.git
+      ref: main
 
 dev_dependencies:
   flutter_test:

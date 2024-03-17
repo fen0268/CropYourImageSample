@@ -2,6 +2,10 @@ import 'package:crop_your_image/crop_your_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'util/edit_enum.dart';
+import 'widget/crop_button_widget.dart';
+import 'widget/crop_edit_widget.dart';
+
 class CropPage extends StatefulWidget {
   const CropPage({super.key, required this.imageData});
 
@@ -12,7 +16,9 @@ class CropPage extends StatefulWidget {
 }
 
 class _CropPageState extends State<CropPage> {
+  // 背景黒か白か
   var _isBaseColor = false;
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -58,6 +64,8 @@ class CropSampleState extends State<CropSample> {
 
   var _isThumbnail = false;
   var _isCropping = false;
+
+  var _angle = 0.0;
 
   // 切り抜きデータ
   Uint8List? _croppedData;
@@ -123,6 +131,8 @@ class CropSampleState extends State<CropSample> {
                             viewportRect.bottom - 24,
                           );
                         },
+                        // 回転
+                        angle: _angle,
                       ),
                       IgnorePointer(
                         child: Padding(
@@ -141,6 +151,10 @@ class CropSampleState extends State<CropSample> {
               ),
               CropEditWidget(
                 edit: edit,
+                onDragging: (index, lowerValue, upperValue) {
+                  _angle = lowerValue;
+                  setState(() {});
+                },
                 editChildren: [
                   TextButton(
                     onPressed: () {
@@ -252,94 +266,6 @@ class CropSampleState extends State<CropSample> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-enum CropEdit {
-  crop,
-  rotate,
-  thumbnail,
-}
-
-class CropEditWidget extends StatelessWidget {
-  const CropEditWidget({
-    super.key,
-    required this.edit,
-    required this.editChildren,
-  });
-
-  final CropEdit edit;
-  final List<Widget> editChildren;
-
-  @override
-  Widget build(BuildContext context) {
-    if (edit == CropEdit.crop) {
-      return Container(
-        color: Colors.grey,
-        child: Container(
-          width: double.infinity,
-          height: 70,
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            color: Colors.white,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: editChildren,
-          ),
-        ),
-      );
-    } else if (edit == CropEdit.rotate) {
-      return Container(
-        width: double.infinity,
-        height: 70,
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-      );
-    } else {
-      return const SizedBox(
-        height: 70,
-      );
-    }
-  }
-}
-
-class CropButton extends StatelessWidget {
-  const CropButton({
-    super.key,
-    this.onTap,
-    this.onTapDown,
-    this.onTapUp,
-    required this.icon,
-    required this.text,
-    required this.color,
-  });
-
-  final Function()? onTap;
-  final Function(TapDownDetails)? onTapDown;
-  final Function(TapUpDetails)? onTapUp;
-  final IconData icon;
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      onTapUp: onTapUp,
-      onTapDown: onTapDown,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: color,
-          ),
-          Text(text, style: TextStyle(color: color)),
-        ],
       ),
     );
   }
