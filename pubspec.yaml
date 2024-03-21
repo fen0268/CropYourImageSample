@@ -18,6 +18,7 @@ dependencies:
     git: 
       url: https://github.com/fen0268/crop_your_image.git
       ref: main
+  flutter_riverpod: ^2.5.1
 
 dev_dependencies:
   flutter_test:
