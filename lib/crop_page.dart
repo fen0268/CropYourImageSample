@@ -1,27 +1,36 @@
 import 'package:crop_your_image/crop_your_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'provider/image_data_provider.dart';
 import 'util/edit_enum.dart';
 import 'widget/crop_button_widget.dart';
 import 'widget/crop_edit_widget.dart';
 
-class CropPage extends StatefulWidget {
+class CropPage extends ConsumerStatefulWidget {
   const CropPage({super.key, required this.imageData});
 
   final Uint8List imageData;
 
   @override
-  State<CropPage> createState() => _CropPageState();
+  ConsumerState<CropPage> createState() => _CropPageState();
 }
 
-class _CropPageState extends State<CropPage> {
+class _CropPageState extends ConsumerState<CropPage> {
   // 背景黒か白か
   var _isBaseColor = false;
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          return;
+        }
+        
+        Navigator.of(context).pop();
+      },
       canPop: false,
       child: Scaffold(
         appBar: AppBar(
@@ -47,7 +56,7 @@ class _CropPageState extends State<CropPage> {
 }
 
 /// 切り取りクラス
-class CropSample extends StatefulWidget {
+class CropSample extends ConsumerStatefulWidget {
   const CropSample(
       {super.key, required this.imageData, required this.isBaseColor});
 
@@ -55,10 +64,10 @@ class CropSample extends StatefulWidget {
   final bool isBaseColor;
 
   @override
-  CropSampleState createState() => CropSampleState();
+  ConsumerState<CropSample> createState() => CropSampleState();
 }
 
-class CropSampleState extends State<CropSample> {
+class CropSampleState extends ConsumerState<CropSample> {
   /// コントローラー
   final _cropController = CropController();
 
@@ -105,12 +114,6 @@ class CropSampleState extends State<CropSample> {
                         willUpdateScale: (newScale) => newScale < 5,
                         controller: _cropController,
                         image: widget.imageData,
-                        onCropped: (croppedData) {
-                          setState(() {
-                            _croppedData = croppedData;
-                            _isCropping = false;
-                          });
-                        },
                         initialSize: 0.5,
 
                         // 切り抜き画像の背景色
@@ -133,6 +136,15 @@ class CropSampleState extends State<CropSample> {
                         },
                         // 回転
                         angle: _angle,
+                        onCropped: (croppedData) {
+                          setState(() {
+                            ref
+                                .read(imageProvider.notifier)
+                                .toImage(croppedData);
+                            _isCropping = false;
+                            debugPrint('Cropped: ${croppedData.length}');
+                          });
+                        },
                       ),
                       IgnorePointer(
                         child: Padding(
@@ -248,6 +260,7 @@ class CropSampleState extends State<CropSample> {
                     CropButton(
                       onTapDown: (_) => setState(() {
                         edit = CropEdit.thumbnail;
+                        _cropController.crop();
                         _isThumbnail = true;
                       }),
                       onTapUp: (_) => setState(() {
